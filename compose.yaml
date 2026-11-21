@@ -6,4 +6,4 @@ services:
       - 'POSTGRES_USER=team2'
       - 'POSTGRES_PASSWORD=team2'
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'

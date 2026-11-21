@@ -96,4 +96,5 @@ configurations.matching { it.name.startsWith("ktlint") }.configureEach {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-Duser.timezone=Asia/Seoul")
+    inputs.file("docs/domains.yaml")
 }

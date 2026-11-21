@@ -38,14 +38,18 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(HandlerMethodValidationException::class)
     fun handleMethodValidation(e: HandlerMethodValidationException) =
-        respond(
-            CommonErrorCode.COMMON_INVALID_REQUEST,
-            fieldErrors =
-                e.parameterValidationResults.flatMap { result ->
-                    val name = result.methodParameter.parameterName ?: "unknown"
-                    result.resolvableErrors.map { FieldErrorResponse(name, it.defaultMessage) }
-                },
-        )
+        if (e.isForReturnValue) {
+            respond(CommonErrorCode.COMMON_INTERNAL_ERROR, cause = e)
+        } else {
+            respond(
+                CommonErrorCode.COMMON_INVALID_REQUEST,
+                fieldErrors =
+                    e.parameterValidationResults.flatMap { result ->
+                        val name = result.methodParameter.parameterName ?: "unknown"
+                        result.resolvableErrors.map { FieldErrorResponse(name, it.defaultMessage) }
+                    },
+            )
+        }
 
     @ExceptionHandler(ConstraintViolationException::class)
     fun handleConstraintViolation(e: ConstraintViolationException) =
@@ -86,10 +90,7 @@ class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException::class)
-    fun handleDataIntegrity(e: DataIntegrityViolationException): ResponseEntity<ErrorResponse> {
-        log.warn(">>> [Http] 데이터 제약 위반 cause={}", e.mostSpecificCause.message)
-        return respond(CommonErrorCode.COMMON_DATA_CONFLICT)
-    }
+    fun handleDataIntegrity() = respond(CommonErrorCode.COMMON_DATA_CONFLICT)
 
     @ExceptionHandler(NoResourceFoundException::class, NoHandlerFoundException::class)
     fun handleNotFound() = respond(CommonErrorCode.COMMON_ENDPOINT_NOT_FOUND)

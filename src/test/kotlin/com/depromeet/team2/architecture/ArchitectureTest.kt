@@ -6,6 +6,7 @@ import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.core.domain.JavaMethod
 import com.tngtech.archunit.core.domain.JavaParameterizedType
 import com.tngtech.archunit.core.domain.JavaType
+import com.tngtech.archunit.core.domain.JavaWildcardType
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption
 import com.tngtech.archunit.lang.ArchCondition
@@ -43,11 +44,12 @@ class ArchitectureTest {
                         method: JavaMethod,
                         events: ConditionEvents,
                     ) {
-                        if (!isDtoType(method.returnType)) {
+                        val returnType = returnTypeOf(method)
+                        if (!isDtoType(returnType)) {
                             events.add(
                                 SimpleConditionEvent.violated(
                                     method,
-                                    "${method.fullName} 이 DTO 가 아닌 ${method.returnType.name} 을 반환합니다",
+                                    "${method.fullName} 이 DTO 가 아닌 ${returnType.name} 을 반환합니다",
                                 ),
                             )
                         }
@@ -71,11 +73,12 @@ class ArchitectureTest {
                         method: JavaMethod,
                         events: ConditionEvents,
                     ) {
-                        if (containsEntity(method.returnType)) {
+                        val returnType = returnTypeOf(method)
+                        if (returnType.allInvolvedRawTypes.any { it.isAnnotatedWith(Entity::class.java) }) {
                             events.add(
                                 SimpleConditionEvent.violated(
                                     method,
-                                    "${method.fullName} 이 엔티티를 반환합니다 (${method.returnType.name}). DTO 로 바꿔 주세요",
+                                    "${method.fullName} 이 엔티티를 반환합니다 (${returnType.name}). DTO 로 바꿔 주세요",
                                 ),
                             )
                         }
@@ -141,9 +144,12 @@ class ArchitectureTest {
         }
     }
 
-    private fun containsEntity(type: JavaType): Boolean =
-        type.toErasure().isAnnotatedWith(Entity::class.java) ||
-            typeArguments(type).any(::containsEntity)
+    private fun returnTypeOf(method: JavaMethod): JavaType {
+        val continuation = method.parameterTypes.lastOrNull() as? JavaParameterizedType
+        if (continuation?.toErasure()?.name != "kotlin.coroutines.Continuation") return method.returnType
+        val argument = continuation.actualTypeArguments.single()
+        return (argument as? JavaWildcardType)?.lowerBounds?.firstOrNull() ?: argument
+    }
 
     private fun typeArguments(type: JavaType): List<JavaType> =
         (type as? JavaParameterizedType)?.actualTypeArguments.orEmpty()
