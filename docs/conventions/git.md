@@ -46,5 +46,6 @@ Type: [도메인] 내용
 ## PR
 
 - 본문은 `.github/PULL_REQUEST_TEMPLATE.md` 양식을 따릅니다.
+- 리뷰어는 `.github/CODEOWNERS` 로 자동 지정됩니다. PR 을 올리면 작성자를 뺀 다른 팀원이 리뷰어로 들어갑니다.
 - 이슈는 `.github/ISSUE_TEMPLATE/` 의 기능 · 버그 · 리팩터 템플릿으로 만듭니다.
 - 리뷰는 CodeRabbit 을 함께 씁니다.
