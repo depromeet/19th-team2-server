@@ -28,6 +28,7 @@ curl localhost:8080/actuator/health   # {"status":"UP"}
 
 - `bootRun` 이 `compose.yaml` 의 PostgreSQL 컨테이너를 자동으로 띄우고 접속 정보도 자동으로 연결합니다 (`spring-boot-docker-compose`). 따로 DB 를 설치하거나 설정할 필요가 없습니다.
 - 로컬 DB 계정은 `.env` 의 `POSTGRES_DB` · `POSTGRES_USER` · `POSTGRES_PASSWORD` 로 정합니다. `compose.yaml` 에는 기본값이 없어서 `.env` 가 없으면 DB 가 뜨지 않습니다.
+  - DB 는 처음 만들 때의 계정으로 초기화되고 데이터가 남습니다. `.env` 값을 바꿨다면 `docker compose down -v` 로 기존 DB 를 지운 뒤 다시 실행합니다. (로컬 데이터가 사라집니다)
 - DB 클라이언트로 붙을 때: `localhost:5432` (`127.0.0.1` 에만 열려 있음) / 계정은 `.env` 값
 - 테스트(`./gradlew test`)는 Testcontainers 가 PostgreSQL 컨테이너를 따로 띄워서 씁니다. 테스트에서 DB 가 필요하면 `@Import(TestcontainersConfiguration::class)` 를 붙입니다.
 - 이미지 버전(`postgres:18`)은 `compose.yaml` · `TestcontainersConfiguration` 두 곳에 있습니다. RDS 버전과 맞춰 함께 바꿉니다.
