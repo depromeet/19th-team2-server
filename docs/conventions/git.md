@@ -18,7 +18,9 @@ hotfix/15-token-expire ─┼─▶ develop ─▶ release/v1.0.0 ─▶ main
 - 작업 흐름은 항상 **이슈 → 브랜치 → PR** 순서입니다.
 - 브랜치는 최신 `develop` 에서 땁니다. 작업 중 `develop` 이 바뀌면 rebase 로 따라갑니다.
 - `main` · `develop` 에 직접 push 하지 않고 PR 로만 머지합니다.
-- PR 은 **Squash and merge** 로 머지합니다.
+- 머지 방식은 대상 브랜치마다 다릅니다.
+  - `feature` · `hotfix` → `develop`: **Create a merge commit**
+  - `release` → `main`: **Squash and merge**
 - 운영 배포는 `develop` 에서 `release/vX.Y.Z` 를 따서 `main` 으로 PR 을 올립니다.
 
 ## 커밋 · PR 제목
