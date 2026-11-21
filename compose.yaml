@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: 'postgres:18'
+    environment:
+      - 'POSTGRES_DB=team2'
+      - 'POSTGRES_USER=team2'
+      - 'POSTGRES_PASSWORD=team2'
+    ports:
+      - '5432:5432'

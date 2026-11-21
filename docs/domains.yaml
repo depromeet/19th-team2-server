@@ -1,0 +1,4 @@
+domains:
+  global:
+    description: 공통 모듈 (config · exception · payload · entity)
+    dependsOn: []
