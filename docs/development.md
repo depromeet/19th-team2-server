@@ -18,15 +18,17 @@
 
 ## 로컬 실행
 
-Docker 가 켜져 있어야 합니다.
+Docker 가 켜져 있어야 합니다. 처음 한 번 `.env.example` 을 `.env` 로 복사합니다. (`.env` 는 커밋하지 않습니다)
 
 ```bash
+cp .env.example .env
 ./gradlew bootRun
 curl localhost:8080/actuator/health   # {"status":"UP"}
 ```
 
 - `bootRun` 이 `compose.yaml` 의 PostgreSQL 컨테이너를 자동으로 띄우고 접속 정보도 자동으로 연결합니다 (`spring-boot-docker-compose`). 따로 DB 를 설치하거나 설정할 필요가 없습니다.
-- DB 클라이언트로 붙을 때: `localhost:5432` / DB `team2` / 계정 `team2` / 비밀번호 `team2` (로컬 전용 값)
+- 로컬 DB 계정은 `.env` 의 `POSTGRES_DB` · `POSTGRES_USER` · `POSTGRES_PASSWORD` 로 정합니다. `compose.yaml` 에는 기본값이 없어서 `.env` 가 없으면 DB 가 뜨지 않습니다.
+- DB 클라이언트로 붙을 때: `localhost:5432` (`127.0.0.1` 에만 열려 있음) / 계정은 `.env` 값
 - 테스트(`./gradlew test`)는 Testcontainers 가 PostgreSQL 컨테이너를 따로 띄워서 씁니다. 테스트에서 DB 가 필요하면 `@Import(TestcontainersConfiguration::class)` 를 붙입니다.
 - 이미지 버전(`postgres:18`)은 `compose.yaml` · `TestcontainersConfiguration` 두 곳에 있습니다. RDS 버전과 맞춰 함께 바꿉니다.
 
