@@ -23,6 +23,14 @@ hotfix/15-token-expire ─┼─▶ develop ─▶ release/v1.0.0 ─▶ main
   - `release` → `main`: **Squash and merge**
 - 운영 배포는 `develop` 에서 `release/vX.Y.Z` 를 따서 `main` 으로 PR 을 올립니다.
 
+## CI · 개발 배포
+
+- `develop` · `main` 대상 PR과 두 브랜치 push에서 앱 build · Terraform 정적 검증 · 배포 스크립트 테스트를 실행합니다.
+- `App CI` · `Terraform and deployment checks`를 필수 검사로 등록합니다.
+- 개발 배포가 활성화된 경우 `develop`의 CI 통과 후 GitHub Actions가 SSM Run Command로 배포합니다. `main`과 PR에서는 개발 배포를 실행하지 않습니다.
+- Terraform의 실제 `plan` · `apply`는 담당자가 로컬에서 검토 후 실행합니다. 앱 배포 역할에는 인프라 변경 권한을 주지 않습니다.
+- Terraform·배포 파일의 구조와 설정값의 위치는 [인프라 구성](../infrastructure.md)을 참고합니다.
+
 ## 커밋 · PR 제목
 
 ```

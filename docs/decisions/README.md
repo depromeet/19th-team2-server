@@ -29,3 +29,5 @@
 | 2026-11-20 | detekt 보류 | 1.23.x 가 Kotlin 2.4 · JDK 25 미지원 (우회 설정 필요). 2.0 정식 후 재검토 | 논의 중 |
 | 2026-11-21 | DB 엔진 PostgreSQL | 공동 사용량 실시간 합산(`UPDATE ... RETURNING`), 세션 겹침 방지(범위 타입 · `EXCLUDE`), 자정을 넘는 시간대 계산, 잦은 스키마 변경 시 DDL 롤백 | 확정 |
 | 2026-11-21 | Spring Modulith 는 도메인 경계 검증 · 맵 생성까지만 | 운영은 어노테이션(`spring-modulith-api`)만, 검증은 테스트에서. 이벤트 저장소는 필요해지면 검토 | 확정 |
+| 2026-11-22 | 개발·데모 AWS 인프라는 Terraform, 앱 CI/CD는 GitHub Actions + OIDC + SSM Run Command | 서울의 EC2·RDS PostgreSQL 18 한 벌로 시작. SSH 없이 배포하고, 인프라 변경은 CI 검증 후 로컬 수동 적용. 계정·도메인 미정 값은 예제로 제공하고 배포 기본 비활성화. [구성](../infrastructure.md) | 확정 |
+| 2026-11-22 | JDK 공급자는 Eclipse Temurin | 로컬 Gradle toolchain·GitHub Actions·EC2의 JDK 공급자를 통일 | 확정 |
