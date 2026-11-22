@@ -52,8 +52,11 @@ variable "jvm_max_heap" {
   type    = string
   default = "384m"
   validation {
-    condition     = can(regex("^[1-9][0-9]*[mg]$", var.jvm_max_heap))
-    error_message = "예: 384m. 메모리 부족으로 small로 올릴 때 heap도 함께 검토하세요."
+    condition = try(
+      tonumber(regex("^([1-9][0-9]*)([mg])$", var.jvm_max_heap)[0]) * (endswith(var.jvm_max_heap, "g") ? 1024 : 1) >= 128,
+      false
+    )
+    error_message = "jvm_max_heap은 초기 heap(-Xms128m) 이상이어야 합니다. 예: 128m, 384m, 1g."
   }
 }
 

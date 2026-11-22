@@ -48,6 +48,48 @@ run "private_database_and_no_ssh" {
     condition     = jsondecode(local.server_config).release_retention_count == 5
     error_message = "EC2 deployment configuration must retain five releases by default."
   }
+  assert {
+    condition     = jsondecode(local.server_config).jvm_max_heap == "384m"
+    error_message = "The default maximum heap must remain 384m."
+  }
+}
+
+run "reject_heap_smaller_than_initial_heap" {
+  command = plan
+  variables {
+    jvm_max_heap = "64m"
+  }
+  expect_failures = [var.jvm_max_heap]
+}
+
+run "reject_heap_just_below_initial_heap" {
+  command = plan
+  variables {
+    jvm_max_heap = "127m"
+  }
+  expect_failures = [var.jvm_max_heap]
+}
+
+run "reject_invalid_heap_unit" {
+  command = plan
+  variables {
+    jvm_max_heap = "128mb"
+  }
+  expect_failures = [var.jvm_max_heap]
+}
+
+run "allow_heap_equal_to_initial_heap" {
+  command = plan
+  variables {
+    jvm_max_heap = "128m"
+  }
+}
+
+run "allow_heap_in_gibibytes" {
+  command = plan
+  variables {
+    jvm_max_heap = "1g"
+  }
 }
 
 run "reject_retention_that_cannot_preserve_rollback_targets" {
