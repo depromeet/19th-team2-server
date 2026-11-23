@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.get
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -36,6 +37,7 @@ class SwaggerConfigTest {
                 .andReturn()
                 .response.contentAsString
         val paths = listOf("/test/swagger/a", "/test/swagger/b")
+        paths.forEach { assertTrue(body.contains("\"$it\":"), "$it 가 API 문서에 없습니다") }
         assertEquals(paths, paths.sortedBy { body.indexOf("\"$it\":") })
     }
 
