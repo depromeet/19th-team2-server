@@ -45,6 +45,9 @@ dependencies {
     // 도메인 경계
     implementation("org.springframework.modulith:spring-modulith-api")
 
+    // API 문서
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
+
     // Test: Spring Boot
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")

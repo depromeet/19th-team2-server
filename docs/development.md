@@ -13,6 +13,7 @@
 | 마이그레이션 | Flyway | `src/main/resources/db/migration` |
 | DB | PostgreSQL 18 (운영 AWS RDS) | 로컬은 Docker Compose, 테스트는 Testcontainers 로 같은 PostgreSQL 을 씁니다 |
 | 도메인 경계 | Spring Modulith 2.1.1 | 운영은 `spring-modulith-api`(어노테이션만), 검증 · 맵 생성은 테스트(`spring-modulith-starter-test`)에서만 돕니다. [architecture.md](architecture.md#도메인-경계-spring-modulith) |
+| API 문서 | springdoc-openapi 3.2.0 (Swagger UI) | 3.2.0 이 Spring Boot 4.1.x 용이고 3.2.1 부터 Boot 4.2.x 용이라, Boot 를 올릴 때 함께 올립니다. `global/config/SwaggerConfig` |
 | 린터 | ktlint 1.8.0 | [code.md](conventions/code.md#린터--포매터) |
 | 인프라 · CI/CD | AWS · GitHub Actions · Terraform | 파일 구조·설정값의 위치는 [인프라 구성](infrastructure.md) 참고. 미정 값은 placeholder로 제공 |
 
@@ -25,6 +26,11 @@ cp .env.example .env
 ./gradlew bootRun
 curl localhost:8080/actuator/health   # {"status":"UP"}
 ```
+
+- API 문서: http://localhost:8080/swagger-ui/index.html (JSON 은 `/v3/api-docs`)
+  - 서버 주소는 상대 경로(`/`)로 고정했습니다. 비워 두면 springdoc 이 절대 URL 을 만드는데, HTTPS 프록시(Caddy) 뒤에서는 `http://` 로 잡혀 Swagger 의 요청이 막힙니다.
+  - 태그(컨트롤러)와 API 는 이름 · 경로순으로 정렬합니다. (`springdoc.swagger-ui.tags-sorter` · `operations-sorter`)
+  - Swagger 접근 제한(Basic 인증)과 Authorize 버튼(JWT)은 인증을 붙일 때 함께 넣습니다.
 
 - `bootRun` 이 `compose.yaml` 의 PostgreSQL 컨테이너를 자동으로 띄우고 접속 정보도 자동으로 연결합니다 (`spring-boot-docker-compose`). 따로 DB 를 설치하거나 설정할 필요가 없습니다.
 - 로컬 DB 계정은 `.env` 의 `POSTGRES_DB` · `POSTGRES_USER` · `POSTGRES_PASSWORD` 로 정합니다. `compose.yaml` 에는 기본값이 없어서 `.env` 가 없으면 DB 가 뜨지 않습니다.
@@ -40,6 +46,8 @@ IntelliJ 에서는 Project SDK 를 Eclipse Temurin 25 로 맞춥니다.
 - `src/main/resources/application.yaml`: 공통 설정
   - `spring.jpa.hibernate.ddl-auto: validate`: 스키마는 Flyway 가 관리
   - `spring.jpa.open-in-view: false`
+  - `springdoc.writer-with-order-by-keys`: API 문서 JSON 의 키(경로 · 스키마 · 필드)를 이름순으로 고정. 출력 순서가 항상 같아 스펙 비교 · 코드 생성 시 순서 차이가 생기지 않습니다
+  - `springdoc.swagger-ui`: Swagger UI 정렬 옵션
   - `app.cors.allowed-origins`: 허용할 프론트 origin 목록. 공개되는 값이라 yaml 에 바로 적습니다
 - `src/main/resources/application-prod.yaml`: 운영(RDS) 접속 정보를 환경 변수로 받습니다. `SPRING_PROFILES_ACTIVE=prod` 로 실행합니다.
 
