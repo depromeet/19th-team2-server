@@ -6,7 +6,7 @@
 |---|---|---|
 | 언어 | Kotlin 2.4.21 | |
 | 프레임워크 | Spring Boot 4.1.2 (Web MVC) | |
-| JDK | 25 | Gradle toolchain 이 없으면 자동으로 받음 (foojay) |
+| JDK | Eclipse Temurin 25 | Gradle toolchain 은 `ADOPTIUM` 으로 지정. 없으면 자동으로 받음 (foojay) |
 | 빌드 | Gradle 9.9.1 · Kotlin DSL | 래퍼(`./gradlew`) 사용, 따로 설치 불필요 |
 | 코루틴 | kotlinx-coroutines 1.10.2 (core · reactor) | Spring Boot 가 버전 관리. MVC 컨트롤러 · 서비스에서 `suspend` 사용 가능 |
 | ORM | Spring Data JPA | `plugin.jpa` · `allOpen` 적용 |
@@ -15,7 +15,7 @@
 | 도메인 경계 | Spring Modulith 2.1.1 | 운영은 `spring-modulith-api`(어노테이션만), 검증 · 맵 생성은 테스트(`spring-modulith-starter-test`)에서만 돕니다. [architecture.md](architecture.md#도메인-경계-spring-modulith) |
 | API 문서 | springdoc-openapi 3.2.0 (Swagger UI) | 3.2.0 이 Spring Boot 4.1.x 용이고 3.2.1 부터 Boot 4.2.x 용이라, Boot 를 올릴 때 함께 올립니다. `global/config/SwaggerConfig` |
 | 린터 | ktlint 1.8.0 | [code.md](conventions/code.md#린터--포매터) |
-| 인프라 · CI/CD | AWS · GitHub Actions · Terraform | 세팅 중 |
+| 인프라 · CI/CD | AWS · GitHub Actions · Terraform | 파일 구조·설정값의 위치는 [인프라 구성](infrastructure.md) 참고. 미정 값은 placeholder로 제공 |
 
 ## 로컬 실행
 
@@ -39,7 +39,7 @@ curl localhost:8080/actuator/health   # {"status":"UP"}
 - 테스트(`./gradlew test`)는 Testcontainers 가 PostgreSQL 컨테이너를 따로 띄워서 씁니다. 테스트에서 DB 가 필요하면 `@Import(TestcontainersConfiguration::class)` 를 붙입니다.
 - 이미지 버전(`postgres:18`)은 `compose.yaml` · `TestcontainersConfiguration` 두 곳에 있습니다. RDS 버전과 맞춰 함께 바꿉니다.
 
-IntelliJ 에서는 Project SDK 를 JDK 25 로 맞춥니다.
+IntelliJ 에서는 Project SDK 를 Eclipse Temurin 25 로 맞춥니다.
 
 ## 설정 파일
 

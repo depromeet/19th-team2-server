@@ -47,3 +47,11 @@ application-local.yml
 *.tfstate
 *.tfstate.*
 *.tfvars
+*.tfvars.json
+*.tfplan
+tfplan
+*.tfbackend
+backend.hcl
+infra/bootstrap/backend.tf
+crash.log
+__pycache__/

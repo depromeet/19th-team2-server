@@ -1,0 +1,21 @@
+aws_region           = "ap-northeast-2"
+aws_account_id       = "REPLACE_ME_AWS_ACCOUNT_ID"
+artifact_bucket_name = "REPLACE_ME_ARTIFACT_BUCKET"
+github_repository    = "depromeet/19th-team2-server"
+
+# AWS CLI로 PostgreSQL 18의 서울 리전 생성 가능 조합을 조회한 뒤 입력합니다.
+db_engine_version    = "REPLACE_ME_POSTGRES_18_MINOR_VERSION"
+db_instance_class    = "REPLACE_ME_DB_INSTANCE_CLASS"
+db_allocated_storage = 20
+
+instance_type           = "t4g.micro"
+jvm_max_heap            = "384m"
+release_retention_count = 5
+
+# 도메인이 정해질 때까지 false로 두고 내부 health부터 검증합니다.
+enable_https    = false
+api_domain      = "api.example.com"
+frontend_origin = "https://app.example.com"
+
+# 이미 GitHub OIDC provider가 있는 계정은 실제 ARN을 입력합니다.
+# existing_github_oidc_provider_arn = "arn:aws:iam::REPLACE_ME_AWS_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"

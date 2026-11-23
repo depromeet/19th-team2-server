@@ -1,0 +1,4 @@
+# 최초 local apply로 버킷을 만든 뒤 backend.tf로 복사합니다.
+terraform {
+  backend "s3" {}
+}

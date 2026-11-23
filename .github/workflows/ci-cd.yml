@@ -1,0 +1,135 @@
+name: CI and Dev CD
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  app-ci:
+    name: App CI
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Build and test with PostgreSQL 18 Testcontainers
+        run: ./gradlew --no-daemon build
+      - name: Keep test reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/reports/
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Package the verified bootJar
+        if: ${{ github.ref == 'refs/heads/develop' && github.event_name != 'pull_request' }}
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          import shutil
+          jars = [p for p in Path('build/libs').glob('*.jar') if not p.name.endswith('-plain.jar')]
+          if len(jars) != 1:
+              raise SystemExit('Expected exactly one executable bootJar.')
+          target = Path('artifact')
+          target.mkdir()
+          shutil.copyfile(jars[0], target / 'app.jar')
+          with (target / 'app.jar').open('rb') as source:
+              digest = hashlib.file_digest(source, 'sha256').hexdigest()
+          (target / 'app.jar.sha256').write_text(f'{digest}  app.jar\n')
+          PY
+      - name: Keep deployment artifact from this CI run
+        if: ${{ github.ref == 'refs/heads/develop' && github.event_name != 'pull_request' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: app-${{ github.sha }}
+          path: artifact/
+          retention-days: 7
+          if-no-files-found: error
+
+  terraform-ci:
+    name: Terraform and deployment checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Read Terraform version
+        id: terraform-version
+        run: echo "version=$(cat .terraform-version)" >> "$GITHUB_OUTPUT"
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ steps.terraform-version.outputs.version }}
+          terraform_wrapper: false
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive infra
+      - name: Validate without AWS credentials or remote state
+        run: |
+          for directory in infra/bootstrap infra/dev; do
+            terraform -chdir="$directory" init -backend=false -input=false -lockfile=readonly
+            terraform -chdir="$directory" validate
+            terraform -chdir="$directory" test
+          done
+      - name: Check deployment scripts
+        run: |
+          bash -n scripts/deploy/server-deploy.sh
+          python3 -m unittest discover -s tests/deploy -v
+
+  deploy-dev:
+    name: Deploy dev via SSM
+    needs: [app-ci, terraform-ci]
+    if: >-
+      vars.DEV_DEPLOY_ENABLED == 'true' &&
+      github.ref == 'refs/heads/develop' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    concurrency:
+      group: team2-dev-deployment
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'ap-northeast-2' }}
+      DEV_DEPLOY_ROLE_ARN: ${{ vars.DEV_DEPLOY_ROLE_ARN }}
+      DEV_EC2_INSTANCE_ID: ${{ vars.DEV_EC2_INSTANCE_ID }}
+      DEV_ARTIFACT_BUCKET: ${{ vars.DEV_ARTIFACT_BUCKET }}
+      DEV_SSM_DOCUMENT_NAME: ${{ vars.DEV_SSM_DOCUMENT_NAME }}
+      DEV_API_URL: ${{ vars.DEV_API_URL }}
+      AWS_MAX_ATTEMPTS: '3'
+      AWS_RETRY_MODE: standard
+      AWS_PAGER: ''
+    steps:
+      - uses: actions/checkout@v6
+      - name: Reject missing or placeholder deployment configuration
+        id: config
+        run: python3 scripts/deploy/validate_config.py
+      - uses: aws-actions/configure-aws-credentials@v5
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.DEV_DEPLOY_ROLE_ARN }}
+          role-session-name: team2-dev-${{ github.run_id }}
+          allowed-account-ids: ${{ steps.config.outputs.aws_account_id }}
+      - uses: actions/download-artifact@v7
+        with:
+          name: app-${{ github.sha }}
+          path: artifact
+      - name: Deploy and wait for EC2 and application health
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/deploy/dispatch.py

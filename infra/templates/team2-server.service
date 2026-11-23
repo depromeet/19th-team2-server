@@ -1,0 +1,23 @@
+[Unit]
+Description=Team2 Spring Boot application
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/opt/team2/current/app.jar
+
+[Service]
+Type=simple
+# The launcher retrieves the secret as root, then drops UID/GID before exec(java).
+ExecStart=/usr/local/libexec/team2-start
+WorkingDirectory=/var/lib/team2
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/team2
+
+[Install]
+WantedBy=multi-user.target
